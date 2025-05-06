@@ -1,19 +1,85 @@
-# Weisfeiler-Lehman Kernel Computation and Kernel Matrix Merging
+# Graph Kernel Matrix Computation Tool
 
-This repository contains two Python scripts, `generate_final_kmatrix.py` and `combination_kmatrix.py`, designed to compute and merge Weisfeiler-Lehman (WL) graph kernel matrices for thousands of graphs. These scripts handle memory constraints by processing the data in manageable batches and then recombining the results into a final kernel matrix.
+A simple tool for computing and merging Weisfeiler-Lehman (WL) graph kernel matrices for large-scale graph datasets. This tool efficiently handles memory constraints by processing graphs in manageable batches and then combining the results into a final kernel matrix.
 
-## Overview
+## 📋 Prerequisites
 
-The Weisfeiler-Lehman kernel is a widely used graph kernel that computes similarities between graphs based on their structure. Due to the large number of graphs and a large size for each graphs, directly computing the kernel matrix for all graphs was infeasible due to memory limitations. To address this, the computation was split into smaller subsets, and the results were merged into a complete kernel matrix.
+- Python 3.7+
+- Required Python packages:
+  - numpy
+  - networkx
+  - grakel
+  - pathlib
 
-This script was tested on a dataset of over 4k graphs consisting of 11 million nodes.
+## 🛠️ Installation
 
-## How to use
+1. Clone this repository:
+```bash
+git clone <repository-url>
+cd <repository-name>
+```
 
-- Update `constants.py` with relevant info.
-- Run `combination_kmatrix.py`, with required args and it will generate combination comparisons of wl kernel in the said directory. A sample can be found in testset dir.
-- Run `generate_finalk_matrix.py` to merge all the combination matrices to arrive at the final matrix which would be number of graphs x number of graphs size.
+2. Install the required packages:
+```bash
+pip install -r requirements.txt
+```
 
-## Args
-You can choose the number of subsets to use. Too large and there are too many combinations to process. Too few and each combination consists of too many graphs. 
+## 🚀 Usage
+
+### 1. Prepare Your Data
+
+Place your graph files (in GraphML format) in the `graphs/` directory. The tool will automatically find all `.graphml` files in this directory.
+
+### 2. Configure Settings
+
+Edit `config.py` to adjust settings:
+- `GRAPHS_DIR`: Directory containing your graph files
+- `OUTPUT_DIR`: Where to save output files
+- `NUM_SUBSETS`: Number of subsets to split the data into (default: 10)
+- `LOG_LEVEL`: Logging level (default: "INFO")
+
+### 3. Run the Computation
+
+1. First, compute the kernel matrices for subsets:
+```bash
+python combination_kmatrix.py
+```
+
+2. Then, merge the results into a final matrix:
+```bash
+python generate_final_kmatrix.py
+```
+
+The final kernel matrix will be saved in the `output/` directory.
+
+## ⚙️ Configuration Options
+
+You can customize the processing by modifying `config.py`:
+
+- **NUM_SUBSETS**: Controls how many subsets the data is split into
+  - Too many subsets: More combinations to process
+  - Too few subsets: Each combination contains more graphs
+  - Recommended: Start with 10 and adjust based on your system's memory
+
+- **GRAPH_PATTERN**: Pattern to match graph files (default: "*.graphml")
+
+## 📊 Performance
+
+This tool has been tested on:
+- Dataset size: 4,000+ graphs
+- Total nodes: 11 million+
+- Memory usage: Optimized for large-scale processing
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📝 License
+
+MIT
+
+## 🙏 Acknowledgments
+
+- Based on the Weisfeiler-Lehman graph kernel algorithm
+- Uses the grakel library for kernel computations
 

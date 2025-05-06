@@ -10,10 +10,11 @@ from itertools import combinations
 import time
 import argparse
 
-from constants import GRAPHS_BP, LIST_OF_FILES
+from config import Config
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=getattr(logging, Config.LOG_LEVEL), 
+                   format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 def create_edge_dictionary(G):
@@ -106,7 +107,7 @@ def process_subset_pair(primary_subset, subset_index_i, subset_index_j, file_lis
 
 def get_file_list():
     """Get a list of graph files from a directory with a specific pattern"""
-    return LIST_OF_FILES
+    return Config.get_graph_files()
 
 
 def run_all_pairs(args):
@@ -118,18 +119,18 @@ def run_all_pairs(args):
     primary_subset = None
     primary_subset_idx = None
     
-    for i, j in combinations(range(args.n_subsets), 2):
-        output_file = os.path.join(args.output_dir, f'kernel_matrix_{i}_{j}.pkl')
+    for i, j in combinations(range(Config.NUM_SUBSETS), 2):
+        output_file = os.path.join(Config.OUTPUT_DIR, f'kernel_matrix_{i}_{j}.pkl')
         if os.path.exists(output_file) and not args.force:
             logger.info(f"Skipping {i}_{j} as output already exists.")
             continue
             
         start_time = time.time()
         if primary_subset is None or primary_subset_idx != i:
-            primary_subset = load_subset(file_list, i, args.n_subsets)
+            primary_subset = load_subset(file_list, i, Config.NUM_SUBSETS)
             primary_subset_idx = i
         
-        process_subset_pair(primary_subset, i, j, file_list, args.n_subsets, args.output_dir)
+        process_subset_pair(primary_subset, i, j, file_list, Config.NUM_SUBSETS, Config.OUTPUT_DIR)
         
         end_time = time.time()
         elapsed = end_time - start_time
@@ -144,22 +145,19 @@ def run_all_pairs(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Graph Kernel Computation Tool")
-    parser.add_argument("--output-dir", type=str, default="kernel_matrices",
-                        help="Directory to save kernel matrices")
-    parser.add_argument("--n-subsets", type=int, default=10,
-                        help="Number of subsets to split the data into")
-    parser.add_argument("--log-level", type=str, default="INFO",
-                        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-                        help="Set the logging level")
-    
     parser.add_argument("--force", action="store_true",
-                           help="Force recomputation even if output exists")
+                       help="Force recomputation even if output exists")
     
     args = parser.parse_args()
     
-    print_subset_sizes(LIST_OF_FILES, args.n_subsets)
-    logging.getLogger().setLevel(getattr(logging, args.log_level))
-    os.makedirs(args.output_dir, exist_ok=True)
+    # Setup directories
+    Config.setup_directories()
+    
+    # Get list of files
+    file_list = Config.get_graph_files()
+    logger.info(f"Found {len(file_list)} total graph files")
+    
+    print_subset_sizes(file_list, Config.NUM_SUBSETS)
     run_all_pairs(args)
         
 if __name__ == '__main__':
